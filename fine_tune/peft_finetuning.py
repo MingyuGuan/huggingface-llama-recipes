@@ -14,14 +14,16 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 model_id = "meta-llama/Meta-Llama-3.1-8B"
 
 tokenizer = AutoTokenizer.from_pretrained(model_id)
+tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 model = AutoModelForCausalLM.from_pretrained(model_id)
+model.resize_token_embeddings(len(tokenizer))
 
 dataset = load_dataset("imdb", split="train")
 
 training_args = TrainingArguments(
     output_dir="./results",
-    num_train_epochs=3,
-    per_device_train_batch_size=4,
+    num_train_epochs=1,
+    per_device_train_batch_size=1,
     logging_dir='./logs',
     logging_steps=10,
 )
@@ -48,8 +50,7 @@ trainer = SFTTrainer(
     tokenizer=tokenizer,
     args=training_args,
     peft_config=lora_config,
-    train_dataset=dataset,
-    dataset_text_field="text",
+    train_dataset=dataset
 )
 
 trainer.train()
